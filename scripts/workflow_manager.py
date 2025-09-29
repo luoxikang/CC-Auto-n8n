@@ -18,7 +18,7 @@ import sys
 class WorkflowManager:
     def __init__(self, base_dir=None):
         """Initialize the workflow manager with base directory"""
-        self.base_dir = Path(base_dir) if base_dir else Path.cwd() / "n8n-integration"
+        self.base_dir = Path(base_dir) if base_dir else Path.cwd()
         self.workflows_dir = self.base_dir / "workflows"
         self.config_path = self.base_dir / "config.json"
 

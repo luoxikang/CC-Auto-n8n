@@ -15,6 +15,12 @@ from datetime import datetime
 class WorkflowImporter:
     def __init__(self, config_path=None):
         """Initialize with configuration"""
+        # Try to find config.json in parent directory if not specified
+        if not config_path:
+            parent_config = Path(__file__).parent.parent / "config.json"
+            if parent_config.exists():
+                config_path = parent_config
+
         if config_path and Path(config_path).exists():
             with open(config_path, 'r') as f:
                 self.config = json.load(f)
@@ -38,6 +44,12 @@ class WorkflowImporter:
         # Load workflow JSON
         with open(workflow_file, 'r') as f:
             workflow_data = json.load(f)
+
+        # Clean workflow data for API
+        # Remove fields that are read-only or not allowed during creation
+        fields_to_remove = ['id', 'active', 'createdAt', 'updatedAt']
+        for field in fields_to_remove:
+            workflow_data.pop(field, None)
 
         # Prepare API request
         api_url = f"{self.config['n8n_api']['base_url']}/api/v1/workflows"

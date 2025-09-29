@@ -18,6 +18,12 @@ import time
 class WorkflowExecutor:
     def __init__(self, config_path=None):
         """Initialize with configuration"""
+        # Try to find config.json in parent directory if not specified
+        if not config_path:
+            parent_config = Path(__file__).parent.parent / "config.json"
+            if parent_config.exists():
+                config_path = parent_config
+
         if config_path and Path(config_path).exists():
             with open(config_path, 'r') as f:
                 self.config = json.load(f)
