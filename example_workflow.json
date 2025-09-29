@@ -1,0 +1,180 @@
+{
+  "name": "Example Debug Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/posts/1",
+        "options": {}
+      },
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Process the data from HTTP request\nconst item = $input.item.json;\n\n// Extract relevant fields\nconst processedData = {\n  id: item.id,\n  title: item.title.toUpperCase(),\n  wordCount: item.body.split(' ').length,\n  timestamp: new Date().toISOString()\n};\n\nreturn processedData;"
+      },
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json[\"wordCount\"]}}",
+              "operation": "larger",
+              "value2": 10
+            }
+          ]
+        }
+      },
+      "name": "IF",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "Long content"
+            },
+            {
+              "name": "message",
+              "value": "This post has {{$node[\"Code\"].json[\"wordCount\"]}} words"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Long",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1050, 220]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "Short content"
+            },
+            {
+              "name": "message",
+              "value": "This post has {{$node[\"Code\"].json[\"wordCount\"]}} words"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Short",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1050, 380]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "Set Long",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Short",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Long": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Short": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": null
+}

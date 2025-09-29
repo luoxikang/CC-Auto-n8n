@@ -1,0 +1,31 @@
+{
+  "n8n_api": {
+    "base_url": "http://localhost:5678",
+    "api_key": "",
+    "comment": "Set api_key if API authentication is enabled in n8n"
+  },
+  "paths": {
+    "workflows": "./workflows",
+    "logs": "./logs",
+    "context": "./context"
+  },
+  "debug": {
+    "log_level": "debug",
+    "capture_env": true,
+    "save_execution_data": true,
+    "keep_last_logs": 10
+  },
+  "execution": {
+    "default_method": "api",
+    "timeout_seconds": 60,
+    "poll_interval": 1,
+    "retry_on_failure": true,
+    "max_retries": 3
+  },
+  "workspace": {
+    "auto_backup": true,
+    "version_control": true,
+    "cleanup_old_versions": true,
+    "max_versions_per_workflow": 20
+  }
+}
