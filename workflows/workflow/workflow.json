@@ -1,0 +1,193 @@
+{
+  "name": "Webhook Example Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "example-webhook-trigger",
+        "method": "GET",
+        "responseMode": "onReceived",
+        "responseData": "allEntries",
+        "responsePropertyName": "data",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "example-webhook-id"
+    },
+    {
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/posts/1",
+        "options": {}
+      },
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Process webhook data and HTTP response\nconst webhookData = $input.item.json;\nconst timestamp = new Date().toISOString();\n\n// Combine webhook input with processing results\nconst result = {\n  timestamp: timestamp,\n  webhook_received: webhookData.body || {},\n  webhook_headers: webhookData.headers || {},\n  webhook_query: webhookData.query || {},\n  api_response: webhookData,\n  processing_status: 'completed',\n  execution_mode: 'webhook_triggered'\n};\n\n// Add any custom processing based on webhook data\nif (webhookData.body && webhookData.body.action) {\n  result.action_processed = webhookData.body.action;\n}\n\nreturn result;"
+      },
+      "name": "Process Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"processing_status\"]}}",
+              "value2": "completed"
+            }
+          ]
+        }
+      },
+      "name": "Check Status",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "success"
+            },
+            {
+              "name": "message",
+              "value": "Webhook processed successfully at {{$json[\"timestamp\"]}}"
+            }
+          ],
+          "number": [
+            {
+              "name": "items_processed",
+              "value": 1
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Success Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1050, 220]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "failed"
+            },
+            {
+              "name": "message",
+              "value": "Processing failed"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Error Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1050, 380]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Prepare final response for webhook\nconst response = {\n  success: $input.item.json.status === 'success',\n  message: $input.item.json.message,\n  timestamp: new Date().toISOString(),\n  execution_id: $execution.id || 'local',\n  workflow_name: $workflow.name || 'Webhook Example',\n  data: $input.item.json\n};\n\nreturn response;"
+      },
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Process Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Data": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success Response": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Response": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

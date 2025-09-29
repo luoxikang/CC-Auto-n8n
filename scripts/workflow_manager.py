@@ -241,6 +241,90 @@ class WorkflowManager:
 
         return True
 
+    def activate_workflow(self, workflow_name):
+        """Activate a workflow"""
+        workspace = self.workflows_dir / workflow_name
+        if not workspace.exists():
+            raise ValueError(f"Workspace not found: {workflow_name}")
+
+        # Get workflow ID from metadata
+        metadata_path = workspace / "metadata.json"
+        if not metadata_path.exists():
+            raise FileNotFoundError(f"Metadata not found for {workflow_name}")
+
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+
+        workflow_id = metadata.get('workflow_id')
+        if not workflow_id:
+            raise ValueError(f"No workflow_id found in metadata for {workflow_name}")
+
+        # Use activate_workflow.py script
+        script_path = self.base_dir / "scripts" / "activate_workflow.py"
+        cmd = [sys.executable, str(script_path), "activate", "--workflow-id", workflow_id]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode == 0:
+            print(result.stdout)
+        else:
+            raise Exception(f"Activation failed: {result.stderr}")
+
+    def deactivate_workflow(self, workflow_name):
+        """Deactivate a workflow"""
+        workspace = self.workflows_dir / workflow_name
+        if not workspace.exists():
+            raise ValueError(f"Workspace not found: {workflow_name}")
+
+        # Get workflow ID from metadata
+        metadata_path = workspace / "metadata.json"
+        if not metadata_path.exists():
+            raise FileNotFoundError(f"Metadata not found for {workflow_name}")
+
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+
+        workflow_id = metadata.get('workflow_id')
+        if not workflow_id:
+            raise ValueError(f"No workflow_id found in metadata for {workflow_name}")
+
+        # Use activate_workflow.py script
+        script_path = self.base_dir / "scripts" / "activate_workflow.py"
+        cmd = [sys.executable, str(script_path), "deactivate", "--workflow-id", workflow_id]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode == 0:
+            print(result.stdout)
+        else:
+            raise Exception(f"Deactivation failed: {result.stderr}")
+
+    def get_workflow_status(self, workflow_name):
+        """Get workflow activation status"""
+        workspace = self.workflows_dir / workflow_name
+        if not workspace.exists():
+            raise ValueError(f"Workspace not found: {workflow_name}")
+
+        # Get workflow ID from metadata
+        metadata_path = workspace / "metadata.json"
+        if not metadata_path.exists():
+            raise FileNotFoundError(f"Metadata not found for {workflow_name}")
+
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+
+        workflow_id = metadata.get('workflow_id')
+        if not workflow_id:
+            raise ValueError(f"No workflow_id found in metadata for {workflow_name}")
+
+        # Use activate_workflow.py script
+        script_path = self.base_dir / "scripts" / "activate_workflow.py"
+        cmd = [sys.executable, str(script_path), "status", "--workflow-id", workflow_id]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode == 0:
+            print(result.stdout)
+        else:
+            raise Exception(f"Status check failed: {result.stderr}")
+
     def debug_cycle(self, json_path, auto_fix=False, max_iterations=3):
         """
         Complete debug cycle with optional auto-fix
@@ -302,6 +386,18 @@ def main():
     cleanup_parser.add_argument('--name', required=True, help='Workflow name')
     cleanup_parser.add_argument('--keep', type=int, default=5, help='Number of logs to keep')
 
+    # Activate command
+    activate_parser = subparsers.add_parser('activate', help='Activate a workflow')
+    activate_parser.add_argument('--name', required=True, help='Workflow name')
+
+    # Deactivate command
+    deactivate_parser = subparsers.add_parser('deactivate', help='Deactivate a workflow')
+    deactivate_parser.add_argument('--name', required=True, help='Workflow name')
+
+    # Status command
+    status_parser = subparsers.add_parser('status', help='Get workflow activation status')
+    status_parser.add_argument('--name', required=True, help='Workflow name')
+
     args = parser.parse_args()
 
     if not args.command:
@@ -335,6 +431,15 @@ def main():
         elif args.command == 'cleanup':
             manager.cleanup_old_logs(args.name, args.keep)
             print(f"✅ Cleaned up logs for {args.name}")
+
+        elif args.command == 'activate':
+            manager.activate_workflow(args.name)
+
+        elif args.command == 'deactivate':
+            manager.deactivate_workflow(args.name)
+
+        elif args.command == 'status':
+            manager.get_workflow_status(args.name)
 
     except Exception as e:
         print(f"❌ Error: {e}")

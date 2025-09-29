@@ -123,6 +123,7 @@ workflows/<name>/context/
 - **凭据问题**: 确认 credentials 字段配置
 - **数据流问题**: 验证 connections 中的节点连接
 - **超时问题**: 检查执行时长和超时设置
+- **HTTP 方法不匹配**: Webhook 节点的 method 与服务器支持的方法不一致
 
 ### 步骤 5: 修复并验证
 1. 修改 `workflow.json`
@@ -139,6 +140,18 @@ python scripts/workflow_manager.py list
 ### 运行特定工作流
 ```bash
 python scripts/workflow_manager.py run --name my_workflow --debug
+```
+
+### 激活/停用工作流
+```bash
+# 激活工作流
+python scripts/workflow_manager.py activate --name my_workflow
+
+# 停用工作流
+python scripts/workflow_manager.py deactivate --name my_workflow
+
+# 查看激活状态
+python scripts/workflow_manager.py status --name my_workflow
 ```
 
 ### 清理旧日志
@@ -179,6 +192,43 @@ Workflow ID: abc123
 - 每次更新工作流自动备份
 - 版本文件: `versions/v<timestamp>_workflow.json`
 - 可回滚到任意历史版本
+
+## ⚡ 工作流激活管理
+
+### 重要说明
+n8n 工作流必须激活才能：
+- 响应 Webhook 请求
+- 触发定时任务
+- 监听外部事件
+
+### 激活工作流的方法
+
+#### 方法 1: 导入时自动激活
+```bash
+python scripts/import_workflow.py --workspace workflows/<name>/ --activate
+```
+
+#### 方法 2: 单独激活命令
+```bash
+# 使用管理器
+python scripts/workflow_manager.py activate --name <workflow_name>
+
+# 使用激活脚本
+python scripts/activate_workflow.py activate --workflow-id <id>
+```
+
+#### 方法 3: 执行前自动激活
+```bash
+python scripts/execute_workflow.py \
+  --workspace workflows/<name>/ \
+  --workflow-id <id> \
+  --auto-activate
+```
+
+### API 端点注意事项
+- ❌ 不能通过 PUT 请求修改 `active` 字段（只读）
+- ❌ PATCH 方法不被支持
+- ✅ 使用专用端点：`POST /api/v1/workflows/{id}/activate`
 
 ## 🐛 调试技巧
 
@@ -260,6 +310,16 @@ docker run -p 5678:5678 n8nio/n8n
 2. 更新 config.json 中的 api_key
 3. 验证 API 端点可访问性
 
+### Webhook 执行失败
+1. **404 错误 - "This webhook is not registered for POST/GET requests"**
+   - 检查工作流中 Webhook 节点的 method 配置
+   - 尝试相反的 HTTP 方法（POST→GET 或 GET→POST）
+   - 修改 workflow.json 和执行脚本以匹配正确方法
+
+2. **Webhook 未注册**
+   - 确保工作流已激活：`python scripts/activate_workflow.py activate --workflow-id <id>`
+   - 在 n8n UI 中手动执行一次以注册测试 webhook
+
 ### 工作流执行超时
 1. 增加 config.json 中的 timeout_seconds
 2. 检查节点是否有长时间运行操作
@@ -315,8 +375,23 @@ python scripts/workflow_manager.py list
 # 运行工作流
 python scripts/workflow_manager.py run --name <name> --debug
 
+# 激活工作流
+python scripts/workflow_manager.py activate --name <name>
+
+# 停用工作流
+python scripts/workflow_manager.py deactivate --name <name>
+
+# 查看激活状态
+python scripts/workflow_manager.py status --name <name>
+
 # 清理
 python scripts/workflow_manager.py cleanup --name <name>
+
+# 导入并激活
+python scripts/import_workflow.py --workspace <path> --activate
+
+# 执行并自动激活
+python scripts/execute_workflow.py --workspace <path> --workflow-id <id> --auto-activate
 ```
 
 ---

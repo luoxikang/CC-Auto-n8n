@@ -507,7 +507,99 @@ cat n8n-integration/workflows/*/context/summary_*.txt
 tail -f n8n-integration/workflows/*/logs/execution_*.log
 ```
 
-### 7. 集成到 CI/CD
+### 7. Webhook 工作流注意事项
+
+#### HTTP 方法配置
+Webhook 工作流对 HTTP 方法敏感，必须确保配置正确：
+
+```bash
+# 如遇到 "This webhook is not registered for POST/GET requests" 错误
+# 1. 检查 workflow.json 中的 method 配置
+# 2. 修改为正确的方法（通常 GET 或 POST）
+# 3. 同步修改 execute_workflow.py 中的请求方法
+```
+
+#### 快速测试 Webhook
+```bash
+# 测试 GET 方法
+curl -X GET "https://n8n.x-silicon.club/webhook/<webhook-path>"
+
+# 测试 POST 方法
+curl -X POST "https://n8n.x-silicon.club/webhook/<webhook-path>" \
+  -H "Content-Type: application/json" \
+  -d '{"test": true}'
+```
+
+### 8. 工作流激活管理
+
+n8n 工作流需要激活才能自动执行（特别是 Webhook 和触发器类型）。系统提供完整的激活管理功能：
+
+#### 激活单个工作流
+```bash
+# 通过工作流 ID 激活
+python scripts/activate_workflow.py activate --workflow-id WORKFLOW_ID
+
+# 通过工作空间激活
+python scripts/activate_workflow.py activate --workspace workflows/my_workflow/
+
+# 通过管理器激活
+python scripts/workflow_manager.py activate --name my_workflow
+```
+
+#### 停用工作流
+```bash
+# 停用单个工作流
+python scripts/activate_workflow.py deactivate --workflow-id WORKFLOW_ID
+
+# 通过管理器停用
+python scripts/workflow_manager.py deactivate --name my_workflow
+```
+
+#### 查看激活状态
+```bash
+# 查看单个工作流状态
+python scripts/activate_workflow.py status --workflow-id WORKFLOW_ID
+
+# 列出所有工作流及其状态
+python scripts/activate_workflow.py list
+
+# 通过管理器查看状态
+python scripts/workflow_manager.py status --name my_workflow
+```
+
+#### 批量操作
+```bash
+# 批量激活多个工作流
+python scripts/activate_workflow.py activate --batch ID1 ID2 ID3
+
+# 激活所有工作流（谨慎使用）
+python scripts/activate_workflow.py activate --all
+```
+
+#### 导入时自动激活
+```bash
+# 导入工作流并自动激活
+python scripts/import_workflow.py --workspace workflows/my_workflow/ --activate
+```
+
+#### 执行前自动激活
+```bash
+# 如果工作流未激活，自动激活后执行
+python scripts/execute_workflow.py \
+  --workspace workflows/my_workflow/ \
+  --workflow-id WORKFLOW_ID \
+  --auto-activate
+```
+
+#### API 端点说明
+n8n API v1 使用专用端点管理工作流状态：
+- **激活**: `POST /api/v1/workflows/{workflow_id}/activate`
+- **停用**: `POST /api/v1/workflows/{workflow_id}/deactivate`
+- **状态查询**: `GET /api/v1/workflows/{workflow_id}` (检查 `active` 字段)
+
+注意：`active` 字段是只读的，不能通过 PUT 请求直接修改。
+
+### 9. 集成到 CI/CD
 
 #### GitHub Actions 示例
 ```yaml
@@ -563,7 +655,7 @@ docker build -t n8n-debugger .
 docker run -v $(pwd)/workflows:/app/workflows n8n-debugger debug --json /app/workflows/example.json
 ```
 
-### 8. API 使用
+### 10. API 使用
 
 系统也可以作为库使用：
 ```python
@@ -590,13 +682,19 @@ manager.cleanup_old_logs("my_workflow", keep_last=5)
 - [x] 日志收集
 - [x] Claude Code 集成
 
-### Phase 2: 增强功能 🔄
+### Phase 2: 增强功能 ✅
+- [x] Webhook 触发支持
+- [x] 工作流激活/停用管理
+- [x] 批量激活操作
+- [x] 自动激活集成
+
+### Phase 3: 高级功能 🔄
 - [ ] 批量工作流管理
 - [ ] 性能基准测试
 - [ ] 可视化调试界面
 - [ ] 工作流模板库
 
-### Phase 3: 高级功能 📅
+### Phase 4: 高级功能 📅
 - [ ] 分布式执行
 - [ ] 实时监控
 - [ ] 自动修复建议
