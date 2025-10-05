@@ -244,6 +244,14 @@ pip install requests psutil
 ```
 
 ### 配置系统
+
+#### 获取 n8n API Key
+1. 登录到你的 n8n 实例
+2. 进入 Settings → API
+3. 创建一个新的 API Key 或使用现有的
+4. 复制生成的 API Key
+
+#### 配置 API Key
 ```bash
 # 编辑配置文件
 vi n8n-integration/config.json
@@ -251,11 +259,15 @@ vi n8n-integration/config.json
 # 设置 n8n API 地址和密钥
 {
   "n8n_api": {
-    "base_url": "http://localhost:5678",
-    "api_key": "your-api-key"
+    "base_url": "http://localhost:5678",  # 替换为你的 n8n 实例地址
+    "api_key": "YOUR_N8N_API_KEY_HERE"    # 替换为你的实际 API Key
   }
 }
 ```
+
+**安全提示**:
+- 请勿将真实的 API Key 提交到版本控制系统
+- 建议使用环境变量管理敏感信息（见下方环境变量配置）
 
 ### 运行示例
 ```bash

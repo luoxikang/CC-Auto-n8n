@@ -1,7 +1,7 @@
 {
   "n8n_api": {
     "base_url": "https://n8n.x-silicon.club",
-    "api_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMWE3OGZhMy01ZDlhLTRhOTItYTNhMy03N2FlMjM1M2NkNDciLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzU5MTE2NDQ4fQ.H6IZgsYkpJzLumfjwOXDiBwcz_3IKPYdwdZezRZuZNM",
+    "api_key": "YOUR_N8N_API_KEY_HERE",
     "comment": "Production n8n instance at x-silicon.club"
   },
   "paths": {
