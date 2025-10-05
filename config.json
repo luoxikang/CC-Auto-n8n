@@ -1,8 +1,8 @@
 {
   "n8n_api": {
-    "base_url": "https://n8n.x-silicon.club",
+    "base_url": "YOUR_N8N_INSTANCE_URL",
     "api_key": "YOUR_N8N_API_KEY_HERE",
-    "comment": "Production n8n instance at x-silicon.club"
+    "comment": "Configure your n8n instance URL and API key here"
   },
   "paths": {
     "workflows": "./workflows",

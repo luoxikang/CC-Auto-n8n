@@ -245,13 +245,20 @@ pip install requests psutil
 
 ### 配置系统
 
-#### 获取 n8n API Key
+#### 1. 配置 n8n 实例地址
+根据你的 n8n 部署方式选择对应的地址：
+- **本地部署**: `http://localhost:5678`
+- **Docker 部署**: `http://localhost:5678` 或 `http://n8n:5678`（容器内）
+- **云端部署**: `https://your-n8n-domain.com`
+- **n8n.cloud**: `https://your-workspace.n8n.cloud`
+
+#### 2. 获取 n8n API Key
 1. 登录到你的 n8n 实例
 2. 进入 Settings → API
 3. 创建一个新的 API Key 或使用现有的
 4. 复制生成的 API Key
 
-#### 配置 API Key
+#### 3. 配置文件设置
 ```bash
 # 编辑配置文件
 vi n8n-integration/config.json
@@ -259,15 +266,26 @@ vi n8n-integration/config.json
 # 设置 n8n API 地址和密钥
 {
   "n8n_api": {
-    "base_url": "http://localhost:5678",  # 替换为你的 n8n 实例地址
-    "api_key": "YOUR_N8N_API_KEY_HERE"    # 替换为你的实际 API Key
+    "base_url": "YOUR_N8N_INSTANCE_URL",  # 例如: http://localhost:5678
+    "api_key": "YOUR_N8N_API_KEY_HERE"    # 粘贴你的 API Key
+  }
+}
+```
+
+**配置示例**:
+```json
+{
+  "n8n_api": {
+    "base_url": "http://localhost:5678",
+    "api_key": "n8n_api_abc123..."
   }
 }
 ```
 
 **安全提示**:
-- 请勿将真实的 API Key 提交到版本控制系统
+- ⚠️ 请勿将真实的 API Key 和 URL 提交到公开的版本控制系统
 - 建议使用环境变量管理敏感信息（见下方环境变量配置）
+- 可以创建 `config.local.json` 用于本地配置（记得添加到 .gitignore）
 
 ### 运行示例
 ```bash
